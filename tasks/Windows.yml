@@ -1,12 +1,12 @@
 - name: Add an agent user
   win_user:
-    name: "{{ az_devops_agent_user }}"
-    password: "{{ az_devops_agent_password }}"
+    name: "{{ az_dev_agent_user }}"
+    password: "{{ az_dev_agent_password }}"
     state: present
     password_never_expires: true
-  become: yes
+  become: true
   when:
-    - az_devops_agent_create_local_user
+    - az_dev_agent_create_local_user
     
 - name: Ensure chocolatey is present
   win_chocolatey:
@@ -19,17 +19,17 @@
 - name: Set basic agent package parameters
   set_fact:
     common_install_options:
-      - "/Directory:{{ az_devops_agent_folder }}"
+      - "/Directory:{{ az_dev_agent_folder }}"
       - "/Url:{{ az_devops_server_url }}"
       - "/Token:{{ az_devops_accesstoken }}"
       - "/Auth:PAT"
-      - "/Pool:{{ az_devops_agent_pool_name }}"
+      - "/Pool:{{ az_dev_agent_pool_name }}"
       - "/Work:{{ az_devops_work_folder }}"
-      - "/LogonAccount:{{ az_devops_agent_user }}"
-      - "/LogonPassword:{{ az_devops_agent_password }}"
+      - "/LogonAccount:{{ az_dev_agent_user }}"
+      - "/LogonPassword:{{ az_dev_agent_password }}"
     build_agent_install_options:
-      - "/Pool:{{ az_devops_agent_pool_name }}"
-      - "/AgentName:{{ az_devops_agent_name }}"
+      - "/Pool:{{ az_dev_agent_pool_name }}"
+      - "/AgentName:{{ az_dev_agent_name }}"
     deployment_install_options:
       - "/DeploymentGroup"
       - "/DeploymentGroupName:{{ az_devops_deployment_group_name }}"
@@ -37,14 +37,14 @@
     resource_agent_install_options:
       - "/Environment"
       - "/EnvironmentName:{{ az_devops_environment_name }}"
-      - "/AgentName:{{ az_devops_agent_name }}"
+      - "/AgentName:{{ az_dev_agent_name }}"
       - "/ProjectName:{{ az_devops_project_name }}"
 
 - name: Add '/Replace' configuration argument
   set_fact:
     common_install_options: "{{ common_install_options }} + ['/Replace']"
   when:
-    - az_devops_agent_replace_existing
+    - az_dev_agent_replace_existing
 
 - name: Add deployment group tags
   set_fact:
@@ -72,25 +72,25 @@
 
 - name: Configure agent as a build server
   set_fact:
-    az_devops_agent_package_params: "{{ common_install_options }} + {{ build_agent_install_options }}"
+    az_dev_agent_package_params: "{{ common_install_options }} + {{ build_agent_install_options }}"
   when:
-     - az_devops_agent_role == 'build'
+     - az_dev_agent_role == 'build'
 
 - name: Configure agent as a deployment server
   set_fact:
-    az_devops_agent_package_params: "{{ common_install_options }} + {{ deployment_install_options }}"
+    az_dev_agent_package_params: "{{ common_install_options }} + {{ deployment_install_options }}"
   when:
-     - az_devops_agent_role == 'deployment'
+     - az_dev_agent_role == 'deployment'
 
 - name: Configure agent as an environment resource
   set_fact:
-    az_devops_agent_package_params: "{{ common_install_options }} + {{ resource_agent_install_options }}"
+    az_dev_agent_package_params: "{{ common_install_options }} + {{ resource_agent_install_options }}"
   when:
-     - az_devops_agent_role == 'resource'
+     - az_dev_agent_role == 'resource'
 
 - name: Install azure-pipelines-agent package
   win_chocolatey:
     name: azure-pipelines-agent
     state: present
-    version: "{{ az_devops_agent_version }}"
-    package_params: "{{ az_devops_agent_package_params | join(' ') }}"
+    version: "{{ az_dev_agent_version }}"
+    package_params: "{{ az_dev_agent_package_params | join(' ') }}"

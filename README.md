@@ -19,21 +19,21 @@ Available variables are listed below, along with default values (see `defaults/m
     az_devops_accountname: null
     az_devops_accesstoken: null
     az_devops_project_name: null
-    az_devops_agent_version: 2.188.3
-    az_devops_agent_user: "az_devops_agent"
-    az_devops_agent_uid: null
-    az_devops_agent_name: "{{ ansible_hostname }}"
+    az_dev_agent_version: 2.188.3
+    az_dev_agent_user: "az_dev_agent"
+    az_dev_agent_uid: null
+    az_dev_agent_name: "{{ ansible_hostname }}"
     az_devops_server_url: "https://dev.azure.com/{{ az_devops_accountname }}"
-    az_devops_agent_folder: "/home/{{ az_devops_agent_user }}/agent/"
-    az_devops_work_folder: "/home/{{ az_devops_agent_user }}/agent/_work"
-    az_devops_agent_pool_name: "Default"
-    az_devops_agent_role: "build"
+    az_dev_agent_folder: "/home/{{ az_dev_agent_user }}/agent/"
+    az_devops_work_folder: "/home/{{ az_dev_agent_user }}/agent/_work"
+    az_dev_agent_pool_name: "Default"
+    az_dev_agent_role: "build"
     az_devops_deployment_group_tags: null
     az_devops_environment_name: null
     az_devops_deployment_group_name: null
-    az_devops_agent_replace_existing: false
+    az_dev_agent_replace_existing: false
     az_devops_reconfigure_agent: false
-    az_devops_agent_user_capabilities: null
+    az_dev_agent_user_capabilities: null
     az_devops_proxy_url: null
     az_devops_proxy_username: null
     az_devops_proxy_password: null
@@ -53,23 +53,23 @@ Available variables are listed below, along with default values (see `defaults/m
 
   The name of the Azure DevOps project in which to register the agent (only used for deployment groups).
 
-- **az_devops_agent_version**
+- **az_dev_agent_version**
 
   Version of the installed agent package. Should be periodically updated to the latest version (see [here](https://github.com/microsoft/azure-pipelines-agent/releases/latest)).
 
-- **az_devops_agent_user**
+- **az_dev_agent_user**
 
   Name of the user used to run and configure the service.
 
-- **az_devops_agent_uid**
+- **az_dev_agent_uid**
 
   UID of the user used to run and configure the service.
 
-- **az_devops_agent_group**
+- **az_dev_agent_group**
 
   Default group of the user used to run and configure the service.
 
-- **az_devops_agent_name**
+- **az_dev_agent_name**
 
   Name of the agent shown in Azure DevOps (defaults to the name of the host.).
 
@@ -77,7 +77,7 @@ Available variables are listed below, along with default values (see `defaults/m
 
   Url for your Azure DevOps account.
 
-- **az_devops_agent_folder**
+- **az_dev_agent_folder**
 
   Folder location for all the agent specific files (note: important that the service user needs execution permissions on all the files in this folder).
 
@@ -85,11 +85,11 @@ Available variables are listed below, along with default values (see `defaults/m
 
   Folder location for all the work specific files (i.e. pulled source code and build results).
 
-- **az_devops_agent_pool_name**
+- **az_dev_agent_pool_name**
 
   Pool name in which the Azure DevOps agent is added.
 
-- **az_devops_agent_role**
+- **az_dev_agent_role**
 
   Use either `build`, `deployment` or `resource`. Build role allows the use of the agent as a build server in pipeline build or releases. Deployment role allows the use of the agent in a deployment group. Resource role allows the use of the agent as a virtual machine resource that can be targeted by deployments from a pipeline and belongs to an environment.
 
@@ -105,7 +105,7 @@ Available variables are listed below, along with default values (see `defaults/m
 
   Use in conjuction with the `resource` agent role. The name of the environment in which to add the VM resource.  **This needs to be manually created in you Azure DevOps project beforehand.**
 
-- **az_devops_agent_replace_existing**
+- **az_dev_agent_replace_existing**
 
   Adds the `--replace` argument to the configuration script for the [scenario where you need to replace an exiting agent with a new host](https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/v2-linux?view=azure-devops#pool-and-agent-names).
 
@@ -133,14 +133,14 @@ Available variables are listed below, along with default values (see `defaults/m
 
   _Note: Think about using Ansible Vault to secure this value._
 
-- **az_devops_agent_user_capabilties**
+- **az_dev_agent_user_capabilties**
 
   A Dictionary of environment variables to set for the agent process which translate to User Capabilties which can be helpful for setting [release pipeline demands](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/demands?view=azure-devops&tabs=yaml)
 
   Example usage:
 
 ```yaml
-    - az_devops_agent_user_capabilties:
+    - az_dev_agent_user_capabilties:
       user_capabilty_key: user_capability_value
 ```
 
@@ -151,9 +151,9 @@ Available variables are listed below, along with default values (see `defaults/m
 ```yaml
 - hosts: agents
   roles:
-      - gsoft.azure_devops_agent
+      - gsoft.azure_dev_agent
   vars:
-    - az_devops_agent_role: build
+    - az_dev_agent_role: build
     - az_devops_accountname: fubar
     - az_devops_accesstoken: ***
 ```
@@ -163,9 +163,9 @@ Available variables are listed below, along with default values (see `defaults/m
 ```yaml
 - hosts: agents
   roles:
-      - gsoft.azure_devops_agent
+      - gsoft.azure_dev_agent
   vars:
-    - az_devops_agent_role: deployment
+    - az_dev_agent_role: deployment
     - az_devops_accountname: fubar
     - az_devops_accesstoken: ***
     - az_devops_project_name: baz
@@ -178,9 +178,9 @@ Available variables are listed below, along with default values (see `defaults/m
 ```yaml
 - hosts: agents
   roles:
-      - gsoft.azure_devops_agent
+      - gsoft.azure_dev_agent
   vars:
-    - az_devops_agent_role: resource
+    - az_dev_agent_role: resource
     - az_devops_accountname: fubar
     - az_devops_accesstoken: ***
     - az_devops_project_name: baz
@@ -192,9 +192,9 @@ Available variables are listed below, along with default values (see `defaults/m
 ```yaml
 - hosts: agents
   roles:
-      - gsoft.azure_devops_agent
+      - gsoft.azure_dev_agent
   vars:
-    - az_devops_agent_role: build
+    - az_dev_agent_role: build
     - az_devops_accountname: fubar
     - az_devops_accesstoken: ***
     - az_devops_proxy_url: "http://127.0.0.1:8080"
