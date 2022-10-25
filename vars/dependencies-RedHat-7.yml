@@ -1,6 +1,0 @@
-az_dev_agent_dependencies:
-  - krb5-libs
-  - libicu
-  - lttng-ust
-  - openssl-libs
-  - zlib
