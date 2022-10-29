@@ -1,9 +1,9 @@
-- name: Ensure group {{ az_dev_agent_group }} exists
+- name: Add {{ az_dev_agent_group }} group
   group:
     name: "{{ az_dev_agent_group }}"
     state: present
 
-- name: Add a dev_agent user
+- name: Add the user <{{ az_dev_agent_user }}> 
   user:
     name: "{{ az_dev_agent_user }}"
     group: "{{ az_dev_agent_group }}"
@@ -13,13 +13,13 @@
     shell: /bin/bash
   become: true
 
-- name: Check if svc.sh exists
+- name: Check if the file <svc.sh>  exists
   stat:
     path: "{{ '/'.join((az_dev_agent_folder, 'svc.sh')) }}"
   register: svc_sh
   become_user: "{{ az_dev_agent_user }}"
 
-- name: Create directories for the dev_agent
+- name: Create directories for the user <{{ az_dev_agent_user }}>
   file:
     state: directory
     path: "{{ item }}"
@@ -53,7 +53,7 @@
   when:
     - not svc_sh.stat.exists
 
-- name: Check service status
+- name: Check the service <{{ az_dev_agent_user }}> status
   command: ./svc.sh status
   args:
     chdir: "{{ az_dev_agent_folder }}"
@@ -66,7 +66,7 @@
     service_is_installed: "{{ svc_status.stdout is defined and svc_status.stdout is not regex('not installed') }}"
     service_is_running: "{{ svc_status.stdout is defined and svc_status.stdout is regex('active \\(running\\)') }}"
 
-- name: Uninstall agent service
+- name: Stop the service <{{ az_dev_agent_user }}>
   command: ./svc.sh stop
   become: true
   args:
@@ -75,7 +75,7 @@
   when:
     - service_is_running
 
-- name: Uninstall agent service
+- name: Uninstall the service <{{ az_dev_agent_user }}>
   command: ./svc.sh uninstall
   become: true
   args:
@@ -84,7 +84,7 @@
   when:
     - service_is_installed
 
-- name: Unconfigure agent
+- name: Unconfigure the agent <{{ az_dev_agent_user }}>
   command: "./config.sh remove --auth PAT --token {{ az_devops_accesstoken }}"
   args:
     chdir: "{{ az_dev_agent_folder }}"
@@ -93,7 +93,7 @@
   when:
     - svc_sh.stat.exists
 
-- name: configuring the agent
+- name: configuring the agent <{{ az_dev_agent_user }}>
   become_user: "{{ az_dev_agent_user }}"
   command:
     chdir: "{{ az_dev_agent_folder }}"
@@ -108,13 +108,13 @@
       --agent {{ az_dev_agent_user }}
       --pool {{ az_dev_agent_pool_name }}
 
-- name: Install agent service
+- name: Install the service <{{ az_dev_agent_user }}>
   command: ./svc.sh install {{ az_dev_agent_user }}
   become: true
   args:
     chdir: "{{ az_dev_agent_folder }}"
 
-- name: Start agent service
+- name: Start the service <{{ az_dev_agent_user }}>
   command: ./svc.sh start
   become: true
   args:

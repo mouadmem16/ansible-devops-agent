@@ -1,10 +1,10 @@
 ---
-- debug:
+- name: Read platform specific os
+  debug:
     msg:
-    - "Dependency lookup variables are :"
     - "{{ ansible_system }}.yml"
 
-- name: Read platform-specific variables
+- name: Including the apropriate os variables
   include_vars: "{{ varfile }}"
   with_first_found:
     - files:
@@ -13,7 +13,7 @@
   loop_control:
     loop_var: varfile
 
-- name: Read platform specific tasks
+- name: Including the apropriate os tasks
   include_tasks: "{{ taskfile }}"
   with_first_found:
     - "{{ ansible_system }}.yml"
