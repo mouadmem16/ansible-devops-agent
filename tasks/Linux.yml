@@ -8,9 +8,16 @@
     name: "{{ az_dev_agent_user }}"
     group: "{{ az_dev_agent_group }}"
     uid: "{{ az_dev_agent_uid|default(omit) }}"
+    groups: "sudo"
     comment: "Azure DevOps Agent"
     shell: /bin/bash
   become: true
+
+- name: Check if svc.sh exists
+  stat:
+    path: "{{ '/'.join((az_dev_agent_folder, 'svc.sh')) }}"
+  register: svc_sh
+  become_user: "{{ az_dev_agent_user }}"
 
 - name: Create directories for the dev_agent
   file:
@@ -23,6 +30,8 @@
     - "{{ az_dev_agent_folder }}"
     - "{{ az_devops_work_folder }}"
   become: true
+  when:
+    - not svc_sh.stat.exists
 
 - name: Download vsts-agent.tar.gz file
   get_url:
@@ -30,12 +39,84 @@
     dest: /home/{{ az_dev_agent_user }}/vsts-agent-linux-x64.tar.gz
     owner: "{{ az_dev_agent_user }}"
     group: "{{ az_dev_agent_group }}"
+  when:
+    - not svc_sh.stat.exists
 
 - name: Extract vsts-agent.tar.gz file
   become: true
   unarchive:
+    remote_src: true
     src: /home/{{  az_dev_agent_user }}/vsts-agent-linux-x64.tar.gz
     dest: "{{ az_devops_default_agent_folder }}"
     owner: "{{ az_dev_agent_user }}"
     group: "{{ az_dev_agent_group }}"
+  when:
+    - not svc_sh.stat.exists
 
+- name: Check service status
+  command: ./svc.sh status
+  args:
+    chdir: "{{ az_dev_agent_folder }}"
+  become: true
+  register: svc_status
+  when: svc_sh.stat.exists
+
+- name: Set agent config facts
+  set_fact:
+    service_is_installed: "{{ svc_status.stdout is defined and svc_status.stdout is not regex('not installed') }}"
+    service_is_running: "{{ svc_status.stdout is defined and svc_status.stdout is regex('active \\(running\\)') }}"
+
+- name: Uninstall agent service
+  command: ./svc.sh stop
+  become: true
+  args:
+    chdir: "{{ az_dev_agent_folder }}"
+    removes: "{{ az_dev_agent_folder }}/runsvc.sh"
+  when:
+    - service_is_running
+
+- name: Uninstall agent service
+  command: ./svc.sh uninstall
+  become: true
+  args:
+    chdir: "{{ az_dev_agent_folder }}"
+    removes: "{{ az_dev_agent_folder }}/runsvc.sh"
+  when:
+    - service_is_installed
+
+- name: Unconfigure agent
+  command: "./config.sh remove --auth PAT --token {{ az_devops_accesstoken }}"
+  args:
+    chdir: "{{ az_dev_agent_folder }}"
+    removes: "{{ az_dev_agent_folder }}/.agent"
+  become_user: "{{ az_dev_agent_user }}"
+  when:
+    - svc_sh.stat.exists
+
+- name: configuring the agent
+  become_user: "{{ az_dev_agent_user }}"
+  command:
+    chdir: "{{ az_dev_agent_folder }}"
+    cmd: |
+      bash config.sh 
+      --unattended 
+      --acceptteeeula 
+      --url '{{ az_devops_server_url }}' 
+      --work '{{ az_devops_work_folder }}'
+      --auth PAT
+      --token '{{ az_devops_accesstoken }}'
+      --agent {{ az_dev_agent_user }}
+      --pool {{ az_dev_agent_pool_name }}
+
+- name: Install agent service
+  command: ./svc.sh install {{ az_dev_agent_user }}
+  become: true
+  args:
+    chdir: "{{ az_dev_agent_folder }}"
+
+- name: Start agent service
+  command: ./svc.sh start
+  become: true
+  args:
+    chdir: "{{ az_dev_agent_folder }}"
+    
